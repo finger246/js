@@ -1,7 +1,6 @@
 'use strict';
 
-///////////////////////////////////////
-// VARIABLE
+// cvlado
 const modal = document.querySelector('.modal');
 const overlay = document.querySelector('.overlay');
 const btnCloseModal = document.querySelector('.btn--close-modal');
@@ -14,7 +13,10 @@ const tabsContent = document.querySelectorAll('.operations__content');
 const nav = document.querySelector('.nav');
 const header = document.querySelector('.header');
 const navHeight = nav.getBoundingClientRect().height;
-
+const slides = document.querySelectorAll('.slide');
+const btnLeft = document.querySelector('.slider__btn--left');
+const btnRight = document.querySelector('.slider__btn--right');
+const dotContainer = document.querySelector('.dots');
 const openModal = function (e) {
   e.preventDefault();
   modal.classList.remove('hidden');
@@ -52,20 +54,7 @@ document.querySelector('.nav__links').addEventListener('click', function (e) {
   }
 });
 
-//tabebi
-
-tabsContainer.addEventListener('click', function (e) {
-  const clicked = e.target.closest('.operations__tab');
-  if (!clicked) return;
-  tabs.forEach(t => t.classList.remove('operations__tab--active'));
-  tabsContent.forEach(c => c.classList.remove('operations__content--active'));
-  clicked.classList.add('operations__tab--active');
-  document
-    .querySelector(`.operations__content--${clicked.dataset.tab}`)
-    .classList.add('operations__content--active');
-});
-
-//menus animacia
+//navigaciis animacia
 
 const hover = function (e) {
   if (e.target.classList.contains('nav__link')) {
@@ -97,6 +86,120 @@ const headerObs = new IntersectionObserver(stickyNav, {
 });
 headerObs.observe(header);
 
+//seqciebis gamohena
+const allSec = document.querySelectorAll('.section');
+const revealSec = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target);
+};
+const sectionObs = new IntersectionObserver(revealSec, {
+  root: null,
+  threshold: 0.15,
+});
+allSec.forEach(function (sec) {
+  sectionObs.observe(sec);
+  sec.classList.add('section--hidden');
+});
+
+//image gamochena
+
+const imgTar = document.querySelectorAll('img[data-src]');
+const revealImg = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+  //src sheicvala data srcti
+  entry.target.src = entry.target.dataset.src;
+  entry.target.addEventListener('load', function () {
+    entry.target.classList.remove('lazy-img');
+  });
+  observer.unobserve(entry.target);
+};
+const imgObs = new IntersectionObserver(revealImg, {
+  root: null,
+  threshold: 0,
+  rootMargin: '200px',
+});
+imgTar.forEach(img => imgObs.observe(img));
+
+//tabebi
+
+tabsContainer.addEventListener('click', function (e) {
+  const clicked = e.target.closest('.operations__tab');
+  if (!clicked) return;
+  tabs.forEach(t => t.classList.remove('operations__tab--active'));
+  tabsContent.forEach(c => c.classList.remove('operations__content--active'));
+  clicked.classList.add('operations__tab--active');
+  document
+    .querySelector(`.operations__content--${clicked.dataset.tab}`)
+    .classList.add('operations__content--active');
+});
+
+//bolo nawilis funqciebi
+let currSlide = 0;
+const maxSlide = slides.length - 1;
+const goSlide = function (slide) {
+  slides.forEach(
+    (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
+  );
+};
+const nextSlide = function () {
+  if (currSlide === maxSlide) {
+    currSlide = 0;
+  } else {
+    currSlide++;
+  }
+  goSlide(currSlide);
+  activateDot(currSlide);
+};
+const prevSlide = function () {
+  if (currSlide === 0) {
+    currSlide = maxSlide;
+  } else {
+    currSlide--;
+  }
+  goSlide(currSlide);
+  activateDot(currSlide);
+};
+
+const createDots = function () {
+  slides.forEach(function (_, i) {
+    dotContainer.insertAdjacentHTML(
+      'beforeend',
+      `<button class="dots__dot" data-slide="${i}"></button>`
+    );
+  });
+};
+
+const activateDot = function (slide) {
+  document
+    .querySelectorAll('.dots__dot')
+    .forEach(dot => dot.classList.remove('dots__dot--active'));
+  document
+    .querySelector(`.dots__dot[data-slide="${slide}"]`)
+    .classList.add('dots__dot--active');
+};
+const init = function () {
+  createDots();
+  activateDot(0);
+  goSlide(0);
+};
+//funqciebis gamoyeneba da eventlisenerebi
+init();
+btnRight.addEventListener('click', nextSlide);
+btnLeft.addEventListener('click', prevSlide);
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'ArrowLeft') prevSlide();
+  if (e.key === 'ArrowRight') nextSlide();
+});
+dotContainer.addEventListener('click', function (e) {
+  if (e.target.classList.contains('dots__dot')) {
+    const { slide } = e.target.dataset;
+    goSlide(slide);
+    activateDot(slide);
+  }
+});
 // const initialCoords = section1.getBoundingClientRect();
 // window.addEventListener('scroll', function () {
 //   if (this.window.scrollY > initialCoords.top) {
